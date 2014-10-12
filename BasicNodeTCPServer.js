@@ -4,10 +4,11 @@ var exec = require('child_process').execFile;
 var fs = require('fs');
 
 function spawnChild(type) {
+  console.log("Started " + type);
   return exec("hello-myo-VisualStudio2013.exe", [type], {}, function(error, stdout, stderr) {  
-        console.log(error);
-        console.log(stdout.toString());
-        console.log(stderr.toString());                 
+       // console.log(error);
+       // console.log(stdout.toString());
+       // console.log(stderr.toString());
   });
 }
 
@@ -26,7 +27,7 @@ function printStats() {
 				}
 			}
 			console.log("You did " + correct + " reps.");
-			console.log("Percentage: " + ((correct) / (correct + incorrect)));
+			console.log("Percentage: " + ((correct) / (correct + incorrect)).toFixed(2));
 		}
 	});
 }

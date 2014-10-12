@@ -68,7 +68,7 @@ public:
     void onPose(myo::Myo* myo, uint64_t timestamp, myo::Pose pose)
     {
         if (pose != currentPose) {
-            std::cout << "Pose changed to " << pose.toString() << std::endl;
+           // std::cout << "Pose changed to " << pose.toString() << std::endl;
         }
         currentPose = pose;
 
@@ -144,7 +144,7 @@ int main(int argc, char** argv)
     try {
     myo::Hub hub("com.dgoldman.hackru-fall-2014");
 
-    std::cout << "Attempting to find a Myo..." << std::endl;
+    //std::cout << "Attempting to find a Myo..." << std::endl;
 
     // Next, we attempt to find a Myo to use. If a Myo is already paired in Myo Connect, this will return that Myo
     // immediately.
@@ -158,9 +158,9 @@ int main(int argc, char** argv)
 	char *argument = (argc > 1) ? argv[1] : "D";
 
     // We've found a Myo.
-    std::cout << "Connected to a Myo armband!" << std::endl << std::endl;
-	std::cout << "Calibrate Myo" << std::endl;
-	std::cout << "Workout: " << argument << std::endl;
+    //std::cout << "Connected to a Myo armband!" << std::endl << std::endl;
+	//std::cout << "Calibrate Myo" << std::endl;
+	//std::cout << "Workout: " << argument << std::endl;
 	//system("pause");
     // Next we construct an instance of our DeviceListener, so that we can register it with the Hub.
     DataCollector collector;
@@ -183,9 +183,9 @@ int main(int argc, char** argv)
 
 	kebin = fopen("kebin.txt", "w");
 
-	std::cout << "Roll thresh = " << collector.roll_thresh << std::endl;
-	std::cout << "Yaw thresh = " << collector.yaw_thresh << std::endl;
-	std::cout << "Pick up your weight, get in starting position, and hit enter to continue" << std::endl;
+	//std::cout << "Roll thresh = " << collector.roll_thresh << std::endl;
+	//std::cout << "Yaw thresh = " << collector.yaw_thresh << std::endl;
+	//std::cout << "Pick up your weight, get in starting position, and hit enter to continue" << std::endl;
 	//system("pause");
 	hub.run(1000 / UPDATES_PER_SEC);
 	starting_pitch = collector.pitch_w;
@@ -196,7 +196,7 @@ int main(int argc, char** argv)
     // Finally we enter our main loop.
     while (collector.onArm) {
 		prev_pitch = collector.pitch_w;
-		collector.calibrationPrint();
+		// collector.calibrationPrint();
 		if (abs(collector.roll_w - roll_s) > collector.roll_thresh && count > 10)
 		{
 			myo->vibrate(myo::Myo::vibrationMedium);
@@ -222,7 +222,7 @@ int main(int argc, char** argv)
 			collector.reps++;
 			fprintf(kebin, "x");
 			fflush(kebin);
-			std::cout << "REP" << std::endl;
+			// std::cout << "REP" << std::endl;
 		}
     }
     // If a standard exception occurred, we print out its message and exit.
