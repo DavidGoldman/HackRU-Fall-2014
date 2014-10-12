@@ -26,6 +26,9 @@ function printStats() {
 					++incorrect;
 				}
 			}
+			if (correct + incorrect == 0) {
+			  return;
+			}
 			console.log("You did " + correct + " reps.");
 			console.log("Percentage: " + ((correct) / (correct + incorrect)).toFixed(2));
 		}
