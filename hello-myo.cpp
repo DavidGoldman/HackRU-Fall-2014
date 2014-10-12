@@ -11,7 +11,6 @@
 // The only file that needs to be included to use the Myo C++ SDK is myo.hpp.
 #include <myo/myo.hpp>
 
-
 #define UPDATES_PER_SEC 30
 
 // Main class for the project, listens to myo data.
@@ -55,10 +54,10 @@ public:
         float yaw = atan2(2.0f * (quat.w() * quat.z() + quat.x() * quat.y()),
                         1.0f - 2.0f * (quat.y() * quat.y() + quat.z() * quat.z()));
 
-        // Convert the floating point angles in radians to a scale from 0 to 18.
-        roll_w = static_cast<int>((roll + (float)M_PI)/(M_PI * 2.0f) * 18);
-        pitch_w = static_cast<int>((pitch + (float)M_PI/2.0f)/M_PI * 18);
-        yaw_w = static_cast<int>((yaw + (float)M_PI)/(M_PI * 2.0f) * 18);
+        // Convert the floating point angles in radians to degrees (0 to 360)
+        roll_w = static_cast<int>((roll + (float)M_PI)/(M_PI * 2.0f) * 360);
+        pitch_w = static_cast<int>((pitch + (float)M_PI/2.0f)/M_PI * 360);
+        yaw_w = static_cast<int>((yaw + (float)M_PI)/(M_PI * 2.0f) * 360);
     }
 
     // onPose() is called whenever the Myo detects that the person wearing it has changed their pose, for example,
@@ -98,10 +97,14 @@ public:
         // Clear the current line
         std::cout << '\r';
 
-        // Print out the orientation. Orientation data is always available, even if no arm is currently recognized.
-        std::cout << '[' << std::string(roll_w, '*') << std::string(18 - roll_w, ' ') << ']'
-                  << '[' << std::string(pitch_w, '*') << std::string(18 - pitch_w, ' ') << ']'
-                  << '[' << std::string(yaw_w, '*') << std::string(18 - yaw_w, ' ') << ']';
+        // Print out the orientation data.
+        // Scale the angles to be [0, 18] for printing.
+        int scaledRoll = roll_w / 20;
+        int scaledPitch = pitch_w / 20;
+        int scaledYaw = yaw_w / 20;
+        std::cout << '[' << std::string(scaledRoll, '*') << std::string(18 - scaledRoll, ' ') << ']'
+                  << '[' << std::string(scaledPitch, '*') << std::string(18 - scaledPitch, ' ') << ']'
+                  << '[' << std::string(scaledYaw, '*') << std::string(18 - scaledYaw, ' ') << ']';
 
         if (onArm) {
             // Print out the currently recognized pose and which arm Myo is being worn on.
