@@ -1,13 +1,13 @@
 // Copyright (C) 2013-2014 Thalmic Labs Inc.
 // Distributed under the Myo SDK license agreement. See LICENSE.txt for details.
 #define _USE_MATH_DEFINES
+#include <csignal>
 #include <cmath>
 #include <iostream>
 #include <iomanip>
 #include <stdexcept>
 #include <string>
 #include <algorithm>
-
 
 // The only file that needs to be included to use the Myo C++ SDK is myo.hpp.
 #include <myo/myo.hpp>
@@ -138,9 +138,19 @@ public:
     }
 };
 
+namespace
+{
+  volatile sig_atomic_t gSignalStatus = 0;
+}
+
+void signal_handler(int signal)
+{
+  gSignalStatus = signal;
+}
+
 int main(int argc, char** argv)
 {
-	std::string argument = "curl";
+    std::signal(SIGUSR1, &signal_handler);
     // We catch any exceptions that might occur below -- see the catch statement for more details.
     try {
     myo::Hub hub("com.dgoldman.hackru-fall-2014");
@@ -159,106 +169,70 @@ int main(int argc, char** argv)
     // We've found a Myo.
     std::cout << "Connected to a Myo armband!" << std::endl << std::endl;
 	std::cout << "Calibrate Myo" << std::endl;
-	std::cout << "You are doing a " << argument << " workout." << std::endl;
 	system("pause");
-		if (argument.compare("Dumbells"))
-		{
-			// Next we construct an instance of our DeviceListener, so that we can register it with the Hub.
-			DataCollector collector;
-			hub.addListener(&collector);
-			hub.run(1000 / UPDATES_PER_SEC);
-			bool down = false;
-			int starting_pitch = collector.pitch_w; //average starting pitch based on test
-			int count = 0;
-			int prev_pitch;
-			collector.roll_thresh = 20;
-			collector.yaw_thresh = 50;
+    // Next we construct an instance of our DeviceListener, so that we can register it with the Hub.
+    DataCollector collector;
+    hub.addListener(&collector);
+	hub.run(1000 / UPDATES_PER_SEC);
+	bool down = false;
+	int starting_pitch = collector.pitch_w; //average starting pitch based on test
+	int count = 0;
+	int prev_pitch;
+	/*std::cout << "Starting pitch: " << starting_pitch << std::endl;
+	while (!down || (abs(starting_pitch - collector.pitch_w) > collector.THRESH_S) || count < 10)
+	{
+		prev_pitch = collector.pitch_w;
+		hub.run(1000 / UPDATES_PER_SEC);
+		collector.calibrationPrint();
+		yaw_min = std::min(yaw_min, collector.yaw_w);
+		yaw_max = std::max(yaw_max,collector.yaw_w);
+		roll_min = std::min(roll_min, collector.roll_w);
+		roll_max = std::max(roll_max, collector.roll_w);
+		if (prev_pitch > collector.pitch_w)
+			down = true;
+		count++;
+	}*/
+	collector.roll_thresh = 20;
+	collector.yaw_thresh = 50;
 
-			std::cout << "Roll thresh = " << collector.roll_thresh << std::endl;
-			std::cout << "Yaw thresh = " << collector.yaw_thresh << std::endl;
-			std::cout << "Pick up your weight, get in starting position, and hit enter to continue" << std::endl;
-			system("pause");
-			hub.run(1000 / UPDATES_PER_SEC);
-			starting_pitch = collector.pitch_w;
-			int roll_s = collector.roll_w;
-			int yaw_s = collector.yaw_w;
-			down = false;
-			count = 0; //counts in between vibrations
-			// Finally we enter our main loop.
-			while (1) {
-				prev_pitch = collector.pitch_w;
-				collector.calibrationPrint();
-				if (abs(collector.roll_w - roll_s) > collector.roll_thresh && count > 10)
-				{
-					myo->vibrate(myo::Myo::vibrationMedium);
-					count = 0;
-				}
-				if (abs(collector.yaw_w - yaw_s) > collector.yaw_thresh && count > 10)
-				{
-					myo->vibrate(myo::Myo::vibrationMedium);
-					count = 0;
-				}
-				count++;
-				hub.run(1000 / UPDATES_PER_SEC);
-				// collector.print(); // Print info
-				if (prev_pitch > collector.pitch_w)
-					down = true;
-				else if (down && prev_pitch < collector.pitch_w)
-				{
-					down = false;
-					collector.reps++;
-					std::cout << "REP" << std::endl;
-				}
-			}
+	std::cout << "Roll thresh = " << collector.roll_thresh << std::endl;
+	std::cout << "Yaw thresh = " << collector.yaw_thresh << std::endl;
+	std::cout << "Pick up your weight, get in starting position, and hit enter to continue" << std::endl;
+	system("pause");
+	hub.run(1000 / UPDATES_PER_SEC);
+	starting_pitch = collector.pitch_w;
+	int roll_s = collector.roll_w;
+	int yaw_s = collector.yaw_w;
+	down = false;
+	count = 0; //counts in between vibrations
+    // Finally we enter our main loop.
+    while (1) {
+        if (gSignalStatus == SIGUSR1) {
+            break;
+        }
+
+		prev_pitch = collector.pitch_w;
+		collector.calibrationPrint();
+		if (abs(collector.roll_w - roll_s) > collector.roll_thresh && count > 10)
+		{
+			myo->vibrate(myo::Myo::vibrationMedium);
+			count = 0;
 		}
-		else
+		if (abs(collector.yaw_w - yaw_s) > collector.yaw_thresh && count > 10)
 		{
-			// Next we construct an instance of our DeviceListener, so that we can register it with the Hub.
-			DataCollector collector;
-			hub.addListener(&collector);
-			hub.run(1000 / UPDATES_PER_SEC);
-			bool down = false;
-			int starting_pitch = collector.pitch_w; //average starting pitch based on test
-			int count = 0;
-			int prev_pitch;
-			collector.roll_thresh = 25;
-			collector.yaw_thresh = 25;
-
-			std::cout << "Roll thresh = " << collector.roll_thresh << std::endl;
-			std::cout << "Yaw thresh = " << collector.yaw_thresh << std::endl;
-			std::cout << "Pick up your weight, get in starting position, and hit enter to continue" << std::endl;
-			system("pause");
-			hub.run(1000 / UPDATES_PER_SEC);
-			starting_pitch = collector.pitch_w;
-			int roll_s = collector.roll_w;
-			int yaw_s = collector.yaw_w;
+			myo->vibrate(myo::Myo::vibrationMedium);
+			count = 0;
+		}
+		count++;
+        hub.run(1000/UPDATES_PER_SEC);
+        // collector.print(); // Print info
+		if (prev_pitch > collector.pitch_w)
+			down = true;
+		else if (down && prev_pitch < collector.pitch_w)
+		{
 			down = false;
-			count = 0; //counts in between vibrations
-			// Finally we enter our main loop.
-			while (1) {
-				prev_pitch = collector.pitch_w;
-				collector.calibrationPrint();
-				if (abs(collector.roll_w - roll_s) > collector.roll_thresh && count > 10)
-				{
-					myo->vibrate(myo::Myo::vibrationMedium);
-					count = 0;
-				}
-				if (abs(collector.yaw_w - yaw_s) > collector.yaw_thresh && count > 10)
-				{
-					myo->vibrate(myo::Myo::vibrationMedium);
-					count = 0;
-				}
-				count++;
-				hub.run(1000 / UPDATES_PER_SEC);
-				// collector.print(); // Print info
-				if (prev_pitch > collector.pitch_w)
-					down = true;
-				else if (down && prev_pitch < collector.pitch_w)
-				{
-					down = false;
-					collector.reps++;
-					std::cout << "REP" << std::endl;
-				}
+			collector.reps++;
+			std::cout << "REP" << std::endl;
 		}
     }
 	/*while (1)
