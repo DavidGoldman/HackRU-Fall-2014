@@ -178,20 +178,6 @@ int main(int argc, char** argv)
 	int starting_pitch = collector.pitch_w; //average starting pitch based on test
 	int count = 0;
 	int prev_pitch;
-	/*std::cout << "Starting pitch: " << starting_pitch << std::endl;
-	while (!down || (abs(starting_pitch - collector.pitch_w) > collector.THRESH_S) || count < 10)
-	{
-		prev_pitch = collector.pitch_w;
-		hub.run(1000 / UPDATES_PER_SEC);
-		collector.calibrationPrint();
-		yaw_min = std::min(yaw_min, collector.yaw_w);
-		yaw_max = std::max(yaw_max,collector.yaw_w);
-		roll_min = std::min(roll_min, collector.roll_w);
-		roll_max = std::max(roll_max, collector.roll_w);
-		if (prev_pitch > collector.pitch_w)
-			down = true;
-		count++;
-	}*/
 	collector.roll_thresh = 20;
 	collector.yaw_thresh = 50;
 
