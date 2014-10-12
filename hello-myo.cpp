@@ -139,6 +139,7 @@ public:
 
 int main(int argc, char** argv)
 {
+	FILE *kebin = NULL;
     // We catch any exceptions that might occur below -- see the catch statement for more details.
     try {
     myo::Hub hub("com.dgoldman.hackru-fall-2014");
@@ -153,13 +154,14 @@ int main(int argc, char** argv)
     if (!myo) {
         throw std::runtime_error("Unable to find a Myo!");
     }
-	char *argument = argv[1];
+	// IDK how to give Visual Studio command line args, soooo..
+	char *argument = (argc > 1) ? argv[1] : "D";
 
     // We've found a Myo.
     std::cout << "Connected to a Myo armband!" << std::endl << std::endl;
 	std::cout << "Calibrate Myo" << std::endl;
 	std::cout << "Workout: " << argument << std::endl;
-	system("pause");
+	//system("pause");
     // Next we construct an instance of our DeviceListener, so that we can register it with the Hub.
     DataCollector collector;
     hub.addListener(&collector);
@@ -168,7 +170,7 @@ int main(int argc, char** argv)
 	int starting_pitch = collector.pitch_w; //average starting pitch based on test
 	int count = 0;
 	int prev_pitch;
-	if (argument[0] == 'D')//dumbells
+	if (argument[0] == 'D') //dumbells
 	{
 		collector.roll_thresh = 20;
 		collector.yaw_thresh = 50;
@@ -179,10 +181,12 @@ int main(int argc, char** argv)
 		collector.yaw_thresh = 25;
 	}
 
+	kebin = fopen("kebin.txt", "w");
+
 	std::cout << "Roll thresh = " << collector.roll_thresh << std::endl;
 	std::cout << "Yaw thresh = " << collector.yaw_thresh << std::endl;
 	std::cout << "Pick up your weight, get in starting position, and hit enter to continue" << std::endl;
-	system("pause");
+	//system("pause");
 	hub.run(1000 / UPDATES_PER_SEC);
 	starting_pitch = collector.pitch_w;
 	int roll_s = collector.roll_w;
@@ -190,17 +194,21 @@ int main(int argc, char** argv)
 	down = false;
 	count = 0; //counts in between vibrations
     // Finally we enter our main loop.
-    while (1) {
+    while (collector.onArm) {
 		prev_pitch = collector.pitch_w;
 		collector.calibrationPrint();
 		if (abs(collector.roll_w - roll_s) > collector.roll_thresh && count > 10)
 		{
 			myo->vibrate(myo::Myo::vibrationMedium);
+			fprintf(kebin, "o");
+			fflush(kebin);
 			count = 0;
 		}
 		if (abs(collector.yaw_w - yaw_s) > collector.yaw_thresh && count > 10)
 		{
 			myo->vibrate(myo::Myo::vibrationMedium);
+			fprintf(kebin, "o");
+			fflush(kebin);
 			count = 0;
 		}
 		count++;
@@ -212,20 +220,16 @@ int main(int argc, char** argv)
 		{
 			down = false;
 			collector.reps++;
+			fprintf(kebin, "x");
+			fflush(kebin);
 			std::cout << "REP" << std::endl;
 		}
     }
-	/*while (1)
-	{
-		collector.calibrationPrint();
-		hub.run(1000 / UPDATES_PER_SEC);
-	}*/
-
     // If a standard exception occurred, we print out its message and exit.
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
-        std::cerr << "Press enter to continue.";
-        std::cin.ignore();
+		fclose(kebin);
         return 1;
     }
+	fclose(kebin);
 }
