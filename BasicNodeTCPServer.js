@@ -2,12 +2,16 @@
 var net = require('net');
 
 // Creates a new TCP server. The handler argument is automatically set as a listener for the 'connection' event
-var server = net.createServer(function (socket) {
-
-  // Every time someone connects, tell them hello and then close the connection.
+var server = net.createServer(function(socket) {
   console.log("Connection from " + socket.remoteAddress);
-  socket.end("Hello World\n");
 
+  socket.on("data", function(data) {
+  	console.log("DATA " + sock.remoteAddress + ": " + data);
+  });
+
+  sock.on("close", function(data) {
+  	console.log("CLOSED: " + sock.remoteAddress + " " + sock.remotePort);
+  });
 });
 
 // Fire up the server bound to port 7000 on localhost
