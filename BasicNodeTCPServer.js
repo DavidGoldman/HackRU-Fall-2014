@@ -3,15 +3,11 @@ var net = require('net');
 var exec = require('child_process').execFile;
 
 function spawnChild(type) {
-  return exec("hello-myo-VisualStudio2013.exe", type, function(error, stdout, stderr) {  
-        console.log(err);
-        console.log(stdout.toString());
-        console.log(stderr.toString());                 
-  });
+  return exec("hello-myo-VisualStudio2013.exe", type);
 }
 
 function endChild(child) {
-  child.kill("SIGUSR1");
+  child.kill("SIGUSR2");
 }
 
 // Creates a new TCP server. The handler argument is automatically set as a listener for the 'connection' event.
@@ -42,7 +38,6 @@ var server = net.createServer(function(socket) {
         ignoreFirst = false;
       } else {
         console.log(socket.remoteAddress + ": " + lines[i]);
-
         // Start or end process.
         if (lines[i] == "HammerStart") {
           childProcess = spawnChild("Hammers");

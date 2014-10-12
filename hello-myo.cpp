@@ -1,7 +1,6 @@
 // Copyright (C) 2013-2014 Thalmic Labs Inc.
 // Distributed under the Myo SDK license agreement. See LICENSE.txt for details.
 #define _USE_MATH_DEFINES
-#include <csignal>
 #include <cmath>
 #include <iostream>
 #include <iomanip>
@@ -138,19 +137,8 @@ public:
     }
 };
 
-namespace
-{
-  volatile sig_atomic_t gSignalStatus = 0;
-}
-
-void signal_handler(int signal)
-{
-  gSignalStatus = signal;
-}
-
 int main(int argc, char** argv)
 {
-    std::signal(SIGUSR1, &signal_handler);
     // We catch any exceptions that might occur below -- see the catch statement for more details.
     try {
     myo::Hub hub("com.dgoldman.hackru-fall-2014");
@@ -165,10 +153,12 @@ int main(int argc, char** argv)
     if (!myo) {
         throw std::runtime_error("Unable to find a Myo!");
     }
+	std::string argument = argv[1];
 
     // We've found a Myo.
     std::cout << "Connected to a Myo armband!" << std::endl << std::endl;
 	std::cout << "Calibrate Myo" << std::endl;
+	std::cout << "Workout: " << argument << std::endl;
 	system("pause");
     // Next we construct an instance of our DeviceListener, so that we can register it with the Hub.
     DataCollector collector;
@@ -178,8 +168,16 @@ int main(int argc, char** argv)
 	int starting_pitch = collector.pitch_w; //average starting pitch based on test
 	int count = 0;
 	int prev_pitch;
-	collector.roll_thresh = 20;
-	collector.yaw_thresh = 50;
+	if (argument[0] == 'D')//dumbells
+	{
+		collector.roll_thresh = 20;
+		collector.yaw_thresh = 50;
+	}
+	else
+	{
+		collector.roll_thresh = 25;
+		collector.yaw_thresh = 25;
+	}
 
 	std::cout << "Roll thresh = " << collector.roll_thresh << std::endl;
 	std::cout << "Yaw thresh = " << collector.yaw_thresh << std::endl;
@@ -193,10 +191,6 @@ int main(int argc, char** argv)
 	count = 0; //counts in between vibrations
     // Finally we enter our main loop.
     while (1) {
-        if (gSignalStatus == SIGUSR1) {
-            break;
-        }
-
 		prev_pitch = collector.pitch_w;
 		collector.calibrationPrint();
 		if (abs(collector.roll_w - roll_s) > collector.roll_thresh && count > 10)
