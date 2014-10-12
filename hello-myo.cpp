@@ -8,19 +8,23 @@
 #include <string>
 #include <algorithm>
 
+
 // The only file that needs to be included to use the Myo C++ SDK is myo.hpp.
 #include <myo/myo.hpp>
 
-#define UPDATES_PER_SEC 30
+#define UPDATES_PER_SEC 5
 
 // Main class for the project, listens to myo data.
 class DataCollector : public myo::DeviceListener {
 private:
-    int roll_w, pitch_w, yaw_w;
-    bool onArm;
     myo::Arm whichArm;
     myo::Pose currentPose;
 public:
+	bool onArm;
+	int reps = 0;
+	int roll_w, pitch_w, yaw_w;
+	int roll_thresh, pitch_thresh, yaw_thresh;
+	const int THRESH_S = 10;
     DataCollector()
     : onArm(false), roll_w(0), pitch_w(0), yaw_w(0), currentPose()
     {
@@ -65,7 +69,7 @@ public:
     void onPose(myo::Myo* myo, uint64_t timestamp, myo::Pose pose)
     {
         if (pose != currentPose) {
-            std::cout << "Pose changed to " << pose.toString() << std:endl;
+            std::cout << "Pose changed to " << pose.toString() << std::endl;
         }
         currentPose = pose;
 
@@ -129,7 +133,8 @@ public:
 
     void calibrationPrint()
     {
-        std::cout << "{ " << roll_w << ", " << pitch_w << ", " << yaw_w << " }," << std:endl << std:flush;
+        std::cout << "{ " << roll_w << ", " << pitch_w << ", " << yaw_w << " }," << std::endl << std::flush;
+
     }
 };
 
@@ -152,17 +157,75 @@ int main(int argc, char** argv)
 
     // We've found a Myo.
     std::cout << "Connected to a Myo armband!" << std::endl << std::endl;
-
+	std::cout << "Calibrate Myo" << std::endl;
+	system("pause");
     // Next we construct an instance of our DeviceListener, so that we can register it with the Hub.
     DataCollector collector;
     hub.addListener(&collector);
+	hub.run(1000 / UPDATES_PER_SEC);
+	bool down = false;
+	int starting_pitch = collector.pitch_w; //average starting pitch based on test
+	int count = 0;
+	int prev_pitch;
+	/*std::cout << "Starting pitch: " << starting_pitch << std::endl;
+	while (!down || (abs(starting_pitch - collector.pitch_w) > collector.THRESH_S) || count < 10)
+	{
+		prev_pitch = collector.pitch_w;
+		hub.run(1000 / UPDATES_PER_SEC);
+		collector.calibrationPrint();
+		yaw_min = std::min(yaw_min, collector.yaw_w);
+		yaw_max = std::max(yaw_max,collector.yaw_w);
+		roll_min = std::min(roll_min, collector.roll_w);
+		roll_max = std::max(roll_max, collector.roll_w);
+		if (prev_pitch > collector.pitch_w)
+			down = true;
+		count++;
+	}*/
+	collector.roll_thresh = 20;
+	collector.yaw_thresh = 50;
 
+	std::cout << "Roll thresh = " << collector.roll_thresh << std::endl;
+	std::cout << "Yaw thresh = " << collector.yaw_thresh << std::endl;
+	std::cout << "Pick up your weight, get in starting position, and hit enter to continue" << std::endl;
+	system("pause");
+	hub.run(1000 / UPDATES_PER_SEC);
+	starting_pitch = collector.pitch_w;
+	int roll_s = collector.roll_w;
+	int yaw_s = collector.yaw_w;
+	down = false;
+	count = 0; //counts in between vibrations
     // Finally we enter our main loop.
     while (1) {
+		prev_pitch = collector.pitch_w;
+		collector.calibrationPrint();
+		if (abs(collector.roll_w - roll_s) > collector.roll_thresh && count > 10)
+		{
+			myo->vibrate(myo::Myo::vibrationMedium);
+			count = 0;
+		}
+		if (abs(collector.yaw_w - yaw_s) > collector.yaw_thresh && count > 10)
+		{
+			myo->vibrate(myo::Myo::vibrationMedium);
+			count = 0;
+		}
+		count++;
         hub.run(1000/UPDATES_PER_SEC);
         // collector.print(); // Print info
-        collector.calibrationPrint();
+		if (prev_pitch > collector.pitch_w)
+			down = true;
+		else if (down && prev_pitch < collector.pitch_w)
+		{
+			down = false;
+			collector.reps++;
+			std::cout << "REP" << std::endl;
+		}
+
     }
+	/*while (1)
+	{
+		collector.calibrationPrint();
+		hub.run(1000 / UPDATES_PER_SEC);
+	}*/
 
     // If a standard exception occurred, we print out its message and exit.
     } catch (const std::exception& e) {
