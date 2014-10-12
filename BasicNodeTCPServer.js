@@ -1,5 +1,18 @@
 // Load the net module to create a TCP server.
 var net = require('net');
+var exec = require('child_process').execFile;
+
+function spawnChild(type) {
+  return exec("BroFormBro.exe", type, function(error, stdout, stderr) {  
+        console.log(err);
+        console.log(stdout.toString());
+        console.log(stderr.toString());                 
+  });
+}
+
+function endChild(child) {
+  child.kill("SIGUSR1");
+}
 
 // Creates a new TCP server. The handler argument is automatically set as a listener for the 'connection' event.
 var server = net.createServer(function(socket) {
@@ -7,28 +20,39 @@ var server = net.createServer(function(socket) {
   socket.setEncoding("ascii");
 
   var buffer = "";
+  var ignoreFirst = true;
+  var childProcess = null;
 
   socket.on("data", function(data) {
-  	// Buffer the data.
-  	data = data.replace("\r\n", "\n");
-  	buffer += data;
-  	var lines = buffer.split("\n");
-  	buffer = "";
+    // Buffer the data.
+    data = data.replace("\r\n", "\n");
+    buffer += data;
+    var lines = buffer.split("\n");
+    buffer = "";
 
-	// Put the last line back in the buffer if it was incomplete.
-	if (lines[lines.length - 1] !== '') {
-	  buffer = lines[lines.length - 1];
-	}
+    // Put the last line back in the buffer if it was incomplete.
+    if (lines[lines.length - 1] !== '') {
+      buffer = lines[lines.length - 1];
+    }
 
-	// Remove the final \n or incomplete line from the array.
+    // Remove the final \n or incomplete line from the array.
     lines = lines.splice(0, lines.length - 1);
     for (var i = 0; i < lines.length; ++i) {
-      console.log(socket.remoteAddress + ": " + lines[i]);
+      if (ignoreFirst) {
+        ignoreFirst = false;
+      } else {
+        console.log(socket.remoteAddress + ": " + lines[i]);
+        if (lines[i] == "HammerStart") {
+          // childProcess = spawnChild();
+        } else if (lines[i] == "HammerEnd") {
+          // endChild(childProcess);
+        }
+      }
     }
   });
 
   socket.on("close", function(had_error) {
-  	console.log("CLOSED: " + had_error);
+    console.log("CLOSED: " + had_error);
   });
 });
 
