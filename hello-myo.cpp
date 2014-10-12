@@ -1,13 +1,13 @@
 // Copyright (C) 2013-2014 Thalmic Labs Inc.
 // Distributed under the Myo SDK license agreement. See LICENSE.txt for details.
 #define _USE_MATH_DEFINES
+#include <csignal>
 #include <cmath>
 #include <iostream>
 #include <iomanip>
 #include <stdexcept>
 #include <string>
 #include <algorithm>
-
 
 // The only file that needs to be included to use the Myo C++ SDK is myo.hpp.
 #include <myo/myo.hpp>
@@ -138,8 +138,19 @@ public:
     }
 };
 
+namespace
+{
+  volatile sig_atomic_t gSignalStatus = 0;
+}
+
+void signal_handler(int signal)
+{
+  gSignalStatus = signal;
+}
+
 int main(int argc, char** argv)
 {
+    std::signal(SIGUSR1, &signal_handler);
     // We catch any exceptions that might occur below -- see the catch statement for more details.
     try {
     myo::Hub hub("com.dgoldman.hackru-fall-2014");
@@ -196,6 +207,10 @@ int main(int argc, char** argv)
 	count = 0; //counts in between vibrations
     // Finally we enter our main loop.
     while (1) {
+        if (gSignalStatus == SIGUSR1) {
+            break;
+        }
+
 		prev_pitch = collector.pitch_w;
 		collector.calibrationPrint();
 		if (abs(collector.roll_w - roll_s) > collector.roll_thresh && count > 10)
@@ -219,7 +234,6 @@ int main(int argc, char** argv)
 			collector.reps++;
 			std::cout << "REP" << std::endl;
 		}
-
     }
 	/*while (1)
 	{
