@@ -11,7 +11,7 @@ function spawnChild(type) {
 }
 
 function endChild(child) {
-  child.stdin.write('e');
+  child.stdin.write('e\n');
 }
 
 // Creates a new TCP server. The handler argument is automatically set as a listener for the 'connection' event.
