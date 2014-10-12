@@ -30,7 +30,7 @@ function printStats() {
 			  return;
 			}
 			console.log("You did " + correct + " reps.");
-			console.log("Percentage: " + ((correct) * 100 / (correct + incorrect)).toFixed(0));
+			console.log("Percentage: " + ((correct) * 100 / (correct + incorrect)).toFixed(0) + "%");
 		}
 	});
 }
