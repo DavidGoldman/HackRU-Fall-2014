@@ -64,6 +64,9 @@ public:
     // making a fist, or not making a fist anymore.
     void onPose(myo::Myo* myo, uint64_t timestamp, myo::Pose pose)
     {
+        if (pose != currentPose) {
+            std::cout << "Pose changed to " << pose.toString() << std:endl;
+        }
         currentPose = pose;
 
         // Vibrate the Myo whenever we've detected that the user has made a fist.
@@ -123,6 +126,11 @@ public:
 
         std::cout << std::flush;
     }
+
+    void calibrationPrint()
+    {
+        std::cout << "{ " << roll_w << ", " << pitch_w << ", " << yaw_w << " }," << std:endl << std:flush;
+    }
 };
 
 int main(int argc, char** argv)
@@ -152,7 +160,8 @@ int main(int argc, char** argv)
     // Finally we enter our main loop.
     while (1) {
         hub.run(1000/UPDATES_PER_SEC);
-        collector.print(); // Print info
+        // collector.print(); // Print info
+        collector.calibrationPrint();
     }
 
     // If a standard exception occurred, we print out its message and exit.
