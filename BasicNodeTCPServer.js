@@ -6,8 +6,26 @@ var server = net.createServer(function(socket) {
   console.log("Connection from " + socket.remoteAddress);
   socket.setEncoding("ascii");
 
+  var buffer = "";
+
   socket.on("data", function(data) {
   	console.log("DATA " + socket.remoteAddress + ": " + data);
+  	// Buffer the data.
+  	data = data.replace("\r\n", "\n");
+  	buffer += data;
+  	var lines = buffer.split("\n");
+  	buffer = "";
+
+	// Put the last line back in the buffer if it was incomplete.
+	if (lines[lines.length - 1] !== '') {
+	  buffer = lines[lines.length - 1];
+	}
+
+	// Remove the final \n or incomplete line from the array.
+    lines = lines.splice(0, lines.length - 1);
+    for (var i = 0; i < lines.length; ++i) {
+      console.log("Line: " + lines[i]);
+    }
   });
 
   socket.on("close", function(had_error) {
