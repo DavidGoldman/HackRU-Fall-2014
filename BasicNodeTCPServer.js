@@ -3,7 +3,7 @@ var net = require('net');
 var exec = require('child_process').execFile;
 
 function spawnChild(type) {
-  return exec("BroFormBro.exe", type, function(error, stdout, stderr) {  
+  return exec("hello-myo-VisualStudio2013.exe", type, function(error, stdout, stderr) {  
         console.log(err);
         console.log(stdout.toString());
         console.log(stderr.toString());                 
