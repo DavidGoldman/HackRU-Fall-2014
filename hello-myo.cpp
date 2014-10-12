@@ -11,10 +11,16 @@
 // The only file that needs to be included to use the Myo C++ SDK is myo.hpp.
 #include <myo/myo.hpp>
 
-// Classes that inherit from myo::DeviceListener can be used to receive events from Myo devices. DeviceListener
-// provides several virtual functions for handling different kinds of events. If you do not override an event, the
-// default behavior is to do nothing.
+
+#define UPDATES_PER_SEC 30
+
+// Main class for the project, listens to myo data.
 class DataCollector : public myo::DeviceListener {
+private:
+    int roll_w, pitch_w, yaw_w;
+    bool onArm;
+    myo::Arm whichArm;
+    myo::Pose currentPose;
 public:
     DataCollector()
     : onArm(false), roll_w(0), pitch_w(0), yaw_w(0), currentPose()
@@ -114,24 +120,13 @@ public:
 
         std::cout << std::flush;
     }
-
-    // These values are set by onArmRecognized() and onArmLost() above.
-    bool onArm;
-    myo::Arm whichArm;
-
-    // These values are set by onOrientationData() and onPose() above.
-    int roll_w, pitch_w, yaw_w;
-    myo::Pose currentPose;
 };
 
 int main(int argc, char** argv)
 {
     // We catch any exceptions that might occur below -- see the catch statement for more details.
     try {
-
-    // First, we create a Hub with our application identifier. Be sure not to use the com.example namespace when
-    // publishing your application. The Hub provides access to one or more Myos.
-    myo::Hub hub("com.example.hello-myo");
+    myo::Hub hub("com.dgoldman.hackru-fall-2014");
 
     std::cout << "Attempting to find a Myo..." << std::endl;
 
@@ -140,8 +135,6 @@ int main(int argc, char** argv)
     // waitForAnyMyo() takes a timeout value in milliseconds. In this case we will try to find a Myo for 10 seconds, and
     // if that fails, the function will return a null pointer.
     myo::Myo* myo = hub.waitForMyo(10000);
-
-    // If waitForAnyMyo() returned a null pointer, we failed to find a Myo, so exit with an error message.
     if (!myo) {
         throw std::runtime_error("Unable to find a Myo!");
     }
@@ -151,19 +144,12 @@ int main(int argc, char** argv)
 
     // Next we construct an instance of our DeviceListener, so that we can register it with the Hub.
     DataCollector collector;
-
-    // Hub::addListener() takes the address of any object whose class inherits from DeviceListener, and will cause
-    // Hub::run() to send events to all registered device listeners.
     hub.addListener(&collector);
 
     // Finally we enter our main loop.
     while (1) {
-        // In each iteration of our main loop, we run the Myo event loop for a set number of milliseconds.
-        // In this case, we wish to update our display 20 times a second, so we run for 1000/20 milliseconds.
-        hub.run(1000/20);
-        // After processing events, we call the print() member function we defined above to print out the values we've
-        // obtained from any events that have occurred.
-        collector.print();
+        hub.run(1000/UPDATES_PER_SEC);
+        collector.print(); // Print info
     }
 
     // If a standard exception occurred, we print out its message and exit.
