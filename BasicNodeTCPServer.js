@@ -6,11 +6,11 @@ var server = net.createServer(function(socket) {
   console.log("Connection from " + socket.remoteAddress);
 
   socket.on("data", function(data) {
-  	console.log("DATA " + sock.remoteAddress + ": " + data);
+  	console.log("DATA " + socket.remoteAddress + ": " + data);
   });
 
-  sock.on("close", function(data) {
-  	console.log("CLOSED: " + sock.remoteAddress + " " + sock.remotePort);
+  socket.on("close", function(data) {
+  	console.log("CLOSED: " + socket.remoteAddress + " " + socket.remotePort);
   });
 });
 
