@@ -42,10 +42,14 @@ var server = net.createServer(function(socket) {
         ignoreFirst = false;
       } else {
         console.log(socket.remoteAddress + ": " + lines[i]);
+
+        // Start or end process.
         if (lines[i] == "HammerStart") {
-          // childProcess = spawnChild();
-        } else if (lines[i] == "HammerEnd") {
-          // endChild(childProcess);
+          childProcess = spawnChild("Hammers");
+        } else if (lines[i] == "DumbbellStart") {
+          childProcess = spawnChild("Dumbbells");
+        } else {
+          endChild(childProcess);
         }
       }
     }
