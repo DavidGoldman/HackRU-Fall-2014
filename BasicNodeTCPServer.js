@@ -1,6 +1,7 @@
 // Load the net module to create a TCP server.
 var net = require('net');
 var exec = require('child_process').execFile;
+var fs = require('fs');
 
 function spawnChild(type) {
   return exec("hello-myo-VisualStudio2013.exe", [type], {}, function(error, stdout, stderr) {  
@@ -10,12 +11,33 @@ function spawnChild(type) {
   });
 }
 
+function printStats() {
+	fs.readFile('kebin.txt', 'ascii', function(err, data) {
+		if (err) {
+			console.log("Unable to read data. ERROR: " + err);
+		} else {
+			var correct = 0;
+			var incorrect = 0;
+			for (var i = 0; i < data.length; ++i) {
+				if (data[i] == 'x') {
+					++correct;
+				} else {
+					++incorrect;
+				}
+			}
+			console.log("You did " + correct + " reps.");
+			console.log("Percentage: " + ((correct) / (correct + incorrect)));
+		}
+	});
+}
+
 function endChild(child) {
   if (!child) {
     console.log("Nope");
     return;
   }
   child.kill();
+  printStats();
 }
 
 // Creates a new TCP server. The handler argument is automatically set as a listener for the 'connection' event.
