@@ -153,7 +153,7 @@ int main(int argc, char** argv)
     if (!myo) {
         throw std::runtime_error("Unable to find a Myo!");
     }
-	std::string argument = argv[1];
+	char *argument = argv[1];
 
     // We've found a Myo.
     std::cout << "Connected to a Myo armband!" << std::endl << std::endl;

@@ -3,15 +3,19 @@ var net = require('net');
 var exec = require('child_process').execFile;
 
 function spawnChild(type) {
-  return exec("hello-myo-VisualStudio2013.exe", [type], function(error, stdout, stderr) {  
-        console.log(err);
+  return exec("hello-myo-VisualStudio2013.exe", [type], {}, function(error, stdout, stderr) {  
+        console.log(error);
         console.log(stdout.toString());
         console.log(stderr.toString());                 
   });
 }
 
 function endChild(child) {
-  child.stdin.write('e\n');
+  if (!child) {
+    console.log("Nope");
+    return;
+  }
+  child.kill();
 }
 
 // Creates a new TCP server. The handler argument is automatically set as a listener for the 'connection' event.
@@ -44,9 +48,9 @@ var server = net.createServer(function(socket) {
         console.log(socket.remoteAddress + ": " + lines[i]);
 
         // Start or end process.
-        if (lines[i] == 'HammerStart') {
+        if (lines[i].lastIndexOf("HammerStart", 0) === 0) {
           childProcess = spawnChild("Hammers");
-        } else if (lines[i] == 'DumbbellStart') {
+        } else if (lines[i].lastIndexOf("DumbbellStart", 0) === 0) {
           childProcess = spawnChild("Dumbbells");
         } else {
           endChild(childProcess);
